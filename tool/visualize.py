@@ -2,7 +2,6 @@ from preprocessing.vocab import Vocab
 import matplotlib.pyplot as plt
 import math
 
-
 def plot_class_instance(dataloader, title=""):
     batch = next(iter(dataloader))
     imgs = batch['img']
