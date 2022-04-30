@@ -7,5 +7,4 @@ def batch_to_device(batch, device):
     return {
             'img': img, 'tgt_input':tgt_input,
             'tgt_output':tgt_output, 'tgt_padding_mask':tgt_padding_mask,
-            'filenames': batch['filenames']
             }
