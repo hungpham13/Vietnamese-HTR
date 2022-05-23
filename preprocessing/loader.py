@@ -42,7 +42,8 @@ def collate_fn(batch):
     # img = []
     target_weights = []
     tgt_input = []
-    max_label_len = max(len(sample[1]) for sample in batch)
+    # max_label_len = max(len(sample[1]) for sample in batch)
+    max_label_len = 240
     for sample in batch:
         # img.append(sample[0])
         label = sample[1]

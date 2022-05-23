@@ -6,7 +6,8 @@ from transformerocr import TransformerOCR
 from preprocessing.loader import create_train_test_loader
 
 CHECKPOINT_PATH = "./saved_models/"
-
+TEST_DIR = "../data/Data 1: Handwriting OCR for Vietnamese Address/test_preprocessed"
+TRAIN_DIR = ".."
 
 def train_transformer(**kwargs):
     device = torch.device(

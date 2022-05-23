@@ -1,7 +1,7 @@
 import torchmetrics
 
-from model.resnet import ResNet50_FeatureExtractor
-from model.transformer import LanguageTransformer
+from model.backbone.resnet import ResNet50_FeatureExtractor
+from model.sequence.transformer import LanguageTransformer
 import torch
 from preprocessing.vocab import Vocab
 from optim.criterion import LabelSmoothingLoss
@@ -9,7 +9,7 @@ import pytorch_lightning as pl
 
 class TransformerOCR(pl.LightningModule):
     def __init__(self, cnn_args, transformer_args,optimizer_hparams):
-        super().__init__()
+        super(TransformerOCR, self).__init__()
         self.vocab = Vocab()
         vocab_size = len(self.vocab)
 
