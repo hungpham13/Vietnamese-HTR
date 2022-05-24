@@ -10,7 +10,7 @@ class BRNN(nn.Module):
         # self.bilstm2 = nn.LSTM(512, 512, dropout=0.2, bidirectional=True,
         #                        batch_first=True)
         self.fc = nn.Sequential(nn.Linear(512, vocab_size + 1),
-                                nn.Softmax(vocab_size + 1)
+                                nn.Softmax(-1)
                                 )
     def _init_hidden(self, x):
         return (torch.zeros((4, x.shape[0], 256), device=x.device),
