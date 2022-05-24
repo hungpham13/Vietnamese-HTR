@@ -13,8 +13,8 @@ class BRNN(nn.Module):
                                 nn.Softmax(vocab_size + 1)
                                 )
     def _init_hidden(self, x):
-        return (torch.zeros((4, x.shape[0], 512)), 
-                torch.zeros((4, x.shape[0], 512)))
+        return (torch.zeros((4, x.shape[0], 256)), 
+                torch.zeros((4, x.shape[0], 256)))
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         :param x: shape (N,L,H): Batch size, Length seq, Channels
