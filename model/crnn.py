@@ -37,7 +37,6 @@ class CRNN(pl.LightningModule):
         """
         outputs = self.cnn(imgs)
         outputs = torch.permute(outputs, (0,2,1))
-        print(outputs.shape)
         outputs = self.seq(outputs)
         return outputs
 
@@ -46,8 +45,7 @@ class CRNN(pl.LightningModule):
         return optimizer
 
     def training_step(self, batch, batch_idx):
-        img, tgt_padding_mask = batch['img'], batch['tgt_padding_mask']
-        tgt_output, tgt_input = batch['tgt_output'], batch['tgt_input']
+        img, tgt_output= batch['img'], batch['tgt_output']
         # calc the loss
         outputs = self.forward(img)
 
@@ -62,14 +60,13 @@ class CRNN(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        img, tgt_padding_mask = batch['img'], batch['tgt_padding_mask']
-        tgt_output, tgt_input = batch['tgt_output'], batch['tgt_input']
+        img, tgt_output= batch['img'], batch['tgt_output']
 
-        outputs = self.model(img, tgt_input, tgt_padding_mask)
-        #                loss = self.criterion(rearrange(outputs, 'b t v -> (b t) v'), rearrange(tgt_output, 'b o -> (b o)'))
+        outputs = self.forward(img)
 
         outputs = outputs.flatten(0, 1)
         tgt_output = tgt_output.flatten()
+
         loss = self.criterion(outputs, tgt_output)
         self.cer(outputs, tgt_output)
         self.wer(outputs, tgt_output)

@@ -22,6 +22,5 @@ class BRNN(nn.Module):
         """
         hidden = self._init_hidden(x)
         x, hidden = self.bilstm1(x, hidden)
-        print(x.shape)
         x = self.fc(x)
         return x
