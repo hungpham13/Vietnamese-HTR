@@ -48,7 +48,7 @@ def train(**kwargs):
     if pretrained_found:
         print("Found pretrained model, resume training...")
         model = Model(**kwargs['model_params'])
-        trainer.fit(model, ckpt_path=pretrained_found[0])
+        trainer.fit(model, train_loader, val_loader, ckpt_path=pretrained_found[0])
     else:
         pl.seed_everything(42) # To be reproducable
         model = Model(**kwargs['model_params'])
