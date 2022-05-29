@@ -26,7 +26,7 @@ def train(**kwargs):
     trainer = pl.Trainer(default_root_dir=root_dir,
                          callbacks=[
                              ModelCheckpoint(save_weights_only=True, mode="max",
-                                             monitor="cer")],
+                                             monitor="val_cer")],
                          gpus=1 if str(device).startswith("cuda") else 0,
                          max_epochs=kwargs['max_epochs'],
                          gradient_clip_val=0.5,
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     test_dir = data_dir + "1015_Private Test/"
     train_pre_dir = data_dir + "train_preprocessed/"
     test_pre_dir = data_dir + "test_preprocessed/"
-    config = {"batch_size": 4,
+    config = {"batch_size": 32,
               "max_epochs": 200,
               "model_name": "crnn",
               "train_dir": train_dir,
