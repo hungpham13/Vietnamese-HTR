@@ -1,6 +1,7 @@
 import pytorch_lightning as pl
+import glob
 import os
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 import torch
 from model.transformerocr import TransformerOCR
 from model.crnn import CRNN
@@ -25,14 +26,16 @@ def train(**kwargs):
     os.makedirs(root_dir, exist_ok=True)
     trainer = pl.Trainer(default_root_dir=root_dir,
                          callbacks=[
-                             ModelCheckpoint(save_weights_only=True, mode="max",
-                                             monitor="val_cer")],
+                             ModelCheckpoint(save_weights_only=False, mode="max",
+                                             monitor="val_cer"),
+                             LearningRateMonitor("epoch"),
+                         ],
                          gpus=1 if str(device).startswith("cuda") else 0,
                          max_epochs=kwargs['max_epochs'],
                          gradient_clip_val=0.5,
                          progress_bar_refresh_rate=1)
 
-    trainer.logger._log_graph = True         # If True, we plot the computation graph in tensorboard
+    trainer.logger._log_graph = True          # If True, we plot the computation graph in tensorboard
     trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
 
     train_loader, val_loader = create_train_test_loader(kwargs['train_dir'],
@@ -41,10 +44,11 @@ def train(**kwargs):
                                                         )
 
     # Check whether pretrained model exists. If yes, load it and skip training
-    pretrained_filename = os.path.join(CHECKPOINT_PATH, f"{kwargs['model_name']}.ckpt")
-    if os.path.isfile(pretrained_filename):
-        print("Found pretrained model, loading...")
-        model = Model.load_from_checkpoint(pretrained_filename)
+    pretrained_found = glob.glob("./**/*.ckpt", recursive=True)
+    if pretrained_found:
+        print("Found pretrained model, resume training...")
+        model = Model(**kwargs['model_params'])
+        trainer.fit(model, ckpt_path=pretrained_found[0])
     else:
         pl.seed_everything(42) # To be reproducable
         model = Model(**kwargs['model_params'])
@@ -78,5 +82,3 @@ if __name__ == "__main__":
                                },
               }
     train(**config)
-
-
