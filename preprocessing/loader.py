@@ -93,7 +93,7 @@ def create_train_test_loader(train_pre_dir, test_pre_dir, batch_size,
                              collate_function=collate_fn):
     data_transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Resize((50, 900)),
+        transforms.Resize((118, 2202)),
         transforms.Normalize(mean=0.485, std=0.229),
     ])
 

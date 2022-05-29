@@ -63,7 +63,7 @@ class CRNN(pl.LightningModule):
     def _predict(self, outputs):
         """Turn log softmax to string"""
         outputs = torch.max(outputs, -1).indices
-        return [self.vocab.decode(out) for out in outputs]
+        return [self.vocab.decode(out.tolist()) for out in outputs]
 
     def forward(self, imgs):
         return self._predict(self._foward(imgs))
@@ -79,15 +79,15 @@ class CRNN(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         outputs, loss = self._calculate_loss(batch)
         outputs = self._predict(outputs)
-        targets = [self.vocab.decode(out) for out in batch['tgt_output']]
+        targets = [self.vocab.decode(out.tolist()) for out in batch['tgt_output']]
 
         self.val_cer.update(outputs, targets)
         self.val_wer.update(outputs, targets)
 
         self.log("val_loss", loss, on_step=True, on_epoch=True, prog_bar=True,
                  logger=True)
-        self.log('val_cer', self.cer, on_step=True, on_epoch=True)
-        self.log('val_wer', self.wer, on_step=True, on_epoch=True)
+        self.log('val_cer', self.val_cer, on_step=True, on_epoch=True)
+        self.log('val_wer', self.val_wer, on_step=True, on_epoch=True)
 
     def test_step(self, batch, batch_idx):
         outputs = self.forward(batch['img'])
