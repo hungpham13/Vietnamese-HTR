@@ -21,7 +21,7 @@ class VNAddressDataset(Dataset):
         file_image = self.imgs[idx]
         img_path = os.path.join(self.data_dir, file_image)
         # get image
-        img = Image.open(img_path).convert('L')
+        img = Image.open(img_path).convert('RGB')
         # get label from image name
         label = self.labels[file_image]  # str
         target = Vocab().encode(label)  # list

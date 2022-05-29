@@ -6,6 +6,9 @@ import torch
 from torch import nn
 from preprocessing.vocab import Vocab
 import pytorch_lightning as pl
+from tool.utils import non_zero_length
+
+
 
 
 class CRNN(pl.LightningModule):
@@ -26,10 +29,12 @@ class CRNN(pl.LightningModule):
         self.criterion = nn.CTCLoss()
 
         # validation metrics
-        self.cer = torchmetrics.CharErrorRate()
-        self.wer = torchmetrics.WordErrorRate()
+        self.val_cer = torchmetrics.CharErrorRate()
+        self.test_cer = torchmetrics.CharErrorRate()
+        self.val_wer = torchmetrics.WordErrorRate()
+        self.test_wer = torchmetrics.WordErrorRate()
 
-    def forward(self, imgs: torch.Tensor) -> torch.Tensor:
+    def _forward(self, imgs: torch.Tensor) -> torch.Tensor:
         """
         Shape:
             - imgs: (N, C, H, W)
@@ -44,36 +49,55 @@ class CRNN(pl.LightningModule):
         optimizer = torch.optim.SGD(self.parameters(), **self.hparams.optimizer_hparams)
         return optimizer
 
-    def training_step(self, batch, batch_idx):
-        img, tgt_output= batch['img'], batch['tgt_output']
+    def _calculate_loss(self, batch):
+        img, target = batch['img'], batch['tgt_output']
         # calc the loss
-        outputs = self.forward(img)
+        outputs = self._forward(img)
+        batch_size, seq_length = outputs.shape[0:2]
+        outputs = torch.permute(outputs, (1, 0, 2)) # (N,T,C) -> (T,N,C)
+        output_lengths = torch.full(size=(batch_size,), fill_value=seq_length, dtype=torch.long)
+        target_lengths = torch.tensor([non_zero_length(seq) for seq in target])
+        loss = self.criterion(outputs, target, output_lengths, target_lengths)
+        return outputs, loss
 
-        # outputs = outputs.view(-1, outputs.size(2))  # flatten(0, 1)
-        # tgt_output = tgt_output.view(-1)  # flatten()
+    def _predict(self, outputs):
+        """Turn log softmax to string"""
+        outputs = torch.max(outputs, -1).indices
+        return [self.vocab.decode(out) for out in outputs]
 
-        loss = self.criterion(outputs, tgt_output)
+    def forward(self, imgs):
+        return self._predict(self._foward(imgs))
+
+    def training_step(self, batch, batch_idx):
         # logs metrics for each training_step,
         # and the average across the epoch, to the progress bar and logger
+        outputs, loss = self._calculate_loss(batch)
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True,
                  logger=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        img, tgt_output= batch['img'], batch['tgt_output']
+        outputs, loss = self._calculate_loss(batch)
+        outputs = self._predict(outputs)
+        targets = [self.vocab.decode(out) for out in batch['tgt_output']]
 
-        outputs = self.forward(img)
+        self.val_cer.update(outputs, targets)
+        self.val_wer.update(outputs, targets)
 
-        outputs = outputs.flatten(0, 1)
-        tgt_output = tgt_output.flatten()
-
-        loss = self.criterion(outputs, tgt_output)
-        self.cer(outputs, tgt_output)
-        self.wer(outputs, tgt_output)
         self.log("val_loss", loss, on_step=True, on_epoch=True, prog_bar=True,
                  logger=True)
-        self.log('cer', self.cer, on_step=True, on_epoch=True)
-        self.log('wer', self.wer, on_step=True, on_epoch=True)
+        self.log('val_cer', self.cer, on_step=True, on_epoch=True)
+        self.log('val_wer', self.wer, on_step=True, on_epoch=True)
+
+    def test_step(self, batch, batch_idx):
+        outputs = self.forward(batch['img'])
+        targets = [self.vocab.decode(out) for out in batch['tgt_output']]
+
+        self.test_cer.update(outputs, targets)
+        self.test_wer.update(outputs, targets)
+
+        self.log('test_cer', self.test_cer, on_step=True, on_epoch=True)
+        self.log('test_wer', self.test_wer, on_step=True, on_epoch=True)
 
 
 if __name__ == "__main__":

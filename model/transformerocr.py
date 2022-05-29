@@ -7,8 +7,9 @@ from preprocessing.vocab import Vocab
 from optim.criterion import LabelSmoothingLoss
 import pytorch_lightning as pl
 
+
 class TransformerOCR(pl.LightningModule):
-    def __init__(self, cnn_args, transformer_args,optimizer_hparams):
+    def __init__(self, cnn_args, transformer_args, optimizer_hparams):
         super(TransformerOCR, self).__init__()
         self.vocab = Vocab()
         vocab_size = len(self.vocab)
@@ -28,7 +29,6 @@ class TransformerOCR(pl.LightningModule):
         # validation metrics
         self.cer = torchmetrics.CharErrorRate()
         self.wer = torchmetrics.WordErrorRate()
-
 
     def forward(self, img, tgt_input, tgt_key_padding_mask):
         """
@@ -51,11 +51,11 @@ class TransformerOCR(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         # change device
         # batch = batch_to_device(batch, device)
-        img, tgt_padding_mask= batch['img'], batch['tgt_padding_mask']
-        tgt_output, tgt_input  = batch['tgt_output'], batch['tgt_input']
+        img, tgt_padding_mask = batch['img'], batch['tgt_padding_mask']
+        tgt_output, tgt_input = batch['tgt_output'], batch['tgt_input']
         # calc the loss
         outputs = self.forward(img, tgt_input,
-                        tgt_key_padding_mask=tgt_padding_mask)
+                               tgt_key_padding_mask=tgt_padding_mask)
 
         outputs = outputs.view(-1, outputs.size(2))  # flatten(0, 1)
         tgt_output = tgt_output.view(-1)  # flatten()
@@ -77,8 +77,8 @@ class TransformerOCR(pl.LightningModule):
         outputs = outputs.flatten(0, 1)
         tgt_output = tgt_output.flatten()
         loss = self.criterion(outputs, tgt_output)
-        self.cer(outputs,tgt_output)
-        self.wer(outputs,tgt_output)
+        self.cer(outputs, tgt_output)
+        self.wer(outputs, tgt_output)
         self.log("val_loss", loss, on_step=True, on_epoch=True, prog_bar=True,
                  logger=True)
         self.log('cer', self.cer, on_step=True, on_epoch=True)
