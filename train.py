@@ -27,7 +27,7 @@ def train(**kwargs):
     os.makedirs(root_dir, exist_ok=True)
     trainer = pl.Trainer(default_root_dir=root_dir,
                          callbacks=[
-                             ModelCheckpoint(save_weights_only=False, mode="max",
+                             ModelCheckpoint(save_weights_only=False, mode="min",	
                                              monitor="val_cer"),
                              LearningRateMonitor("epoch"),
                          ],
