@@ -21,6 +21,7 @@ def train(**kwargs):
     device = torch.device(
         "cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 
+    pl.seed_everything(42)  # To be reproducable
     # Create a PyTorch Lightning trainer with the generation callback
     root_dir = os.path.join(CHECKPOINT_PATH, kwargs['model_name'])
     os.makedirs(root_dir, exist_ok=True)
@@ -49,7 +50,6 @@ def train(**kwargs):
         model = Model(**kwargs['model_params'])
         trainer.fit(model, train_loader, val_loader, ckpt_path=pretrained_found[0])
     else:
-        pl.seed_everything(42) # To be reproducable
         model = Model(**kwargs['model_params'])
         trainer.fit(model, train_loader, val_loader)
         model = Model.load_from_checkpoint(

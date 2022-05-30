@@ -61,7 +61,7 @@ class CRNN(pl.LightningModule):
         return outputs, loss
 
     def _predict(self, outputs):
-        """Turn log softmax to string"""
+        """Turn log softmax to string and confidence score"""
         outputs = torch.max(outputs, -1).indices
         return [self.vocab.decode(out.tolist()) for out in outputs]
 
