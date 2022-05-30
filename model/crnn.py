@@ -66,7 +66,7 @@ class CRNN(pl.LightningModule):
         return [self.vocab.decode(out.tolist()) for out in outputs]
 
     def forward(self, imgs):
-        return self._predict(self._foward(imgs))
+        return self._predict(self._forward(imgs))
 
     def training_step(self, batch, batch_idx):
         # logs metrics for each training_step,
