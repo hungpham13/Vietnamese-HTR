@@ -23,7 +23,7 @@ def train(**kwargs):
 
     pl.seed_everything(42)  # To be reproducable
     # Create a PyTorch Lightning trainer with the generation callback
-    root_dir = os.path.join(CHECKPOINT_PATH, kwargs['model_name'])
+    root_dir = os.path.join(kwargs['checkpoint_path'], kwargs['model_name'])
     os.makedirs(root_dir, exist_ok=True)
     trainer = pl.Trainer(default_root_dir=root_dir,
                          callbacks=[
@@ -77,6 +77,7 @@ if __name__ == "__main__":
               "model_name": "crnn",
               "train_dir": train_dir,
               "test_dir": test_dir,
+              "checkpoint_path": "model/saved_models",
               "model_params": {"optimizer_hparams": {"lr":1e-3},
                                },
               }
