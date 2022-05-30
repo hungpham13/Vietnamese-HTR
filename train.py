@@ -58,18 +58,18 @@ def train(**kwargs):
     # Test best model on validation and test set
     val_result = trainer.test(model, val_loader, verbose=False)
     # test_result = trainer.test(model, test_anom_loader, verbose=False)
-    result = {"cer_on_val": val_result[0]["test_cer"],
-              "wer_on_val": val_result[0]["test_wer"]}
-    print(result)
+    # result = {"cer_on_val": val_result[0]["test_cer"],
+    #           "wer_on_val": val_result[0]["test_wer"]}
+    print(val_result)
 
     model = model.to(device)
-    return model, result
+    return model, val_result
 
 
 if __name__ == "__main__":
-    data_dir = "data/Data 1: Handwriting OCR for Vietnamese Address/"
-    train_dir = data_dir + "0916_Data Samples 2/"
-    test_dir = data_dir + "1015_Private Test/"
+    data_dir = "data/"
+    train_dir = data_dir + "0916_Data_Samples_2/"
+    test_dir = data_dir + "1015_Private_Test/"
     train_pre_dir = data_dir + "train_preprocessed/"
     test_pre_dir = data_dir + "test_preprocessed/"
     config = {"batch_size": 32,
