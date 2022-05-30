@@ -91,7 +91,7 @@ class CRNN(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         outputs = self.forward(batch['img'])
-        targets = [self.vocab.decode(out) for out in batch['tgt_output']]
+        targets = [self.vocab.decode(out.tolist()) for out in batch['tgt_output']]
 
         self.test_cer.update(outputs, targets)
         self.test_wer.update(outputs, targets)

@@ -35,7 +35,6 @@ def train(**kwargs):
                          gradient_clip_val=0.5,
                          progress_bar_refresh_rate=1)
 
-    trainer.logger._log_graph = True          # If True, we plot the computation graph in tensorboard
     trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
 
     train_loader, val_loader = create_train_test_loader(kwargs['train_dir'],
@@ -44,7 +43,7 @@ def train(**kwargs):
                                                         )
 
     # Check whether pretrained model exists. If yes, load it and skip training
-    pretrained_found = glob.glob("./**/*.ckpt", recursive=True)
+    pretrained_found = glob.glob(os.path.join(root_dir, "./**/*.ckpt"), recursive=True)
     if pretrained_found:
         print("Found pretrained model, resume training...")
         model = Model(**kwargs['model_params'])
@@ -81,4 +80,4 @@ if __name__ == "__main__":
               "model_params": {"optimizer_hparams": {"lr":1e-3},
                                },
               }
-    train(**config)
+    model, result = train(**config)
