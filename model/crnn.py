@@ -9,8 +9,6 @@ import pytorch_lightning as pl
 from tool.utils import non_zero_length
 
 
-
-
 class CRNN(pl.LightningModule):
     def __init__(self, optimizer_hparams):
         super(CRNN, self).__init__()
@@ -41,12 +39,13 @@ class CRNN(pl.LightningModule):
             - outputs: (N, C, T)
         """
         outputs = self.cnn(imgs)
-        outputs = torch.permute(outputs, (0,2,1))
+        outputs = torch.permute(outputs, (0, 2, 1))
         outputs = self.seq(outputs)
         return outputs
 
     def configure_optimizers(self):
-        optimizer = torch.optim.SGD(self.parameters(), **self.hparams.optimizer_hparams)
+        optimizer = torch.optim.SGD(self.parameters(),
+                                    **self.hparams.optimizer_hparams)
         return optimizer
 
     def _calculate_loss(self, batch):
@@ -54,8 +53,9 @@ class CRNN(pl.LightningModule):
         # calc the loss
         outputs = self._forward(img)
         batch_size, seq_length = outputs.shape[0:2]
-        outputs = torch.permute(outputs, (1, 0, 2)) # (N,T,C) -> (T,N,C)
-        output_lengths = torch.full(size=(batch_size,), fill_value=seq_length, dtype=torch.long)
+        outputs = torch.permute(outputs, (1, 0, 2))  # (N,T,C) -> (T,N,C)
+        output_lengths = torch.full(size=(batch_size,), fill_value=seq_length,
+                                    dtype=torch.long)
         target_lengths = torch.tensor([non_zero_length(seq) for seq in target])
         loss = self.criterion(outputs, target, output_lengths, target_lengths)
         return outputs, loss
@@ -79,7 +79,8 @@ class CRNN(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         outputs, loss = self._calculate_loss(batch)
         outputs = self._predict(outputs)
-        targets = [self.vocab.decode(out.tolist()) for out in batch['tgt_output']]
+        targets = [self.vocab.decode(out.tolist()) for out in
+                   batch['tgt_output']]
 
         self.val_cer.update(outputs, targets)
         self.val_wer.update(outputs, targets)
@@ -91,7 +92,8 @@ class CRNN(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         outputs = self.forward(batch['img'])
-        targets = [self.vocab.decode(out.tolist()) for out in batch['tgt_output']]
+        targets = [self.vocab.decode(out.tolist()) for out in
+                   batch['tgt_output']]
 
         self.test_cer.update(outputs, targets)
         self.test_wer.update(outputs, targets)
@@ -102,5 +104,6 @@ class CRNN(pl.LightningModule):
 
 if __name__ == "__main__":
     from torchinfo import summary
-    a = CRNN({'lr':1e-3})
-    summary(a, (64,3,118,2167))
+
+    a = CRNN({'lr': 1e-3})
+    summary(a, (64, 3, 118, 2167))
