@@ -72,7 +72,7 @@ class Trainer():
         
         transforms = None
         if self.image_aug:
-            transforms =  augmentor
+            transforms = augmentor
 
         self.train_gen = self.data_gen('train_{}'.format(self.dataset_name), 
                 self.data_root, self.train_annotation, self.masked_language_model, transform=transforms)
@@ -123,6 +123,7 @@ class Trainer():
                 total_gpu_time = 0
                 print(info) 
                 self.logger.log(info)
+                self.save_checkpoint(self.config['trainer']['checkpoint'])
 
             if self.valid_annotation and self.iter % self.valid_every == 0:
                 val_loss = self.validate()
@@ -135,7 +136,6 @@ class Trainer():
                 if acc_full_seq > best_acc:
                     self.save_weights(self.export_weights)
                     best_acc = acc_full_seq
-            self.save_checkpoint(self.config['trainer']['checkpoint'])
 
 
     def validate(self):
@@ -203,8 +203,8 @@ class Trainer():
     
         return {"acc_full": acc_full_seq,
                 "acc_per_char": acc_per_char,
-                "wer": wer,
-                "cer": cer
+                "wer": wer.item(),
+                "cer": cer.item()
                 }
     
     def visualize_prediction(self, sample=16, errorcase=False, fontname='serif', fontsize=16):
