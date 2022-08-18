@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader
 from einops import rearrange
 from torch.optim.lr_scheduler import CosineAnnealingLR, CyclicLR, OneCycleLR
 
-import torchvision 
+import torchmetrics
 
 from vietocr.tool.utils import compute_accuracy
 from PIL import Image
@@ -82,7 +82,10 @@ class Trainer():
                     self.data_root, self.valid_annotation, masked_language_model=False)
 
         self.train_losses = []
-        
+        # validation metrics
+        self.cer = torchmetrics.CharErrorRate()
+        self.wer = torchmetrics.WordErrorRate()
+
     def train(self):
         total_loss = 0
         
@@ -133,8 +136,9 @@ class Trainer():
                 if acc_full_seq > best_acc:
                     self.save_weights(self.export_weights)
                     best_acc = acc_full_seq
+            self.save_checkpoint(self.config['trainer']['checkpoint'])
 
-            
+
     def validate(self):
         self.model.eval()
 
@@ -167,7 +171,7 @@ class Trainer():
         actual_sents = []
         img_files = []
 
-        for batch in  self.valid_gen:
+        for batch in self.valid_gen:
             batch = self.batch_to_device(batch)
 
             if self.beamsearch:
@@ -195,8 +199,14 @@ class Trainer():
 
         acc_full_seq = compute_accuracy(actual_sents, pred_sents, mode='full_sequence')
         acc_per_char = compute_accuracy(actual_sents, pred_sents, mode='per_char')
+        cer = self.cer(pred_sents, actual_sents)
+        wer = self.wer(pred_sents, actual_sents)
     
-        return acc_full_seq, acc_per_char
+        return {"acc_full": acc_full_seq,
+                "acc_per_char": acc_per_char,
+                "wer": wer,
+                "cer": cer
+                }
     
     def visualize_prediction(self, sample=16, errorcase=False, fontname='serif', fontsize=16):
         
@@ -253,17 +263,22 @@ class Trainer():
 
 
     def load_checkpoint(self, filename):
-        checkpoint = torch.load(filename)
-        
-        optim = ScheduledOptim(
-	       Adam(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09),
-            	self.config['transformer']['d_model'], **self.config['optimizer'])
 
+        checkpoint = torch.load(filename)
+        self.optimizer = AdamW(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09)
         self.optimizer.load_state_dict(checkpoint['optimizer'])
+        self.scheduler = OneCycleLR(self.optimizer, total_steps=self.config['trainer']['iters'], **self.config['optimizer'])
+
+
+        # optim = ScheduledOptim(
+        #     Adam(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09),
+        #         self.config['transformer']['d_model'], **self.config['optimizer'])
+
         self.model.load_state_dict(checkpoint['state_dict'])
         self.iter = checkpoint['iter']
 
         self.train_losses = checkpoint['train_losses']
+
 
     def save_checkpoint(self, filename):
         state = {'iter':self.iter, 'state_dict': self.model.state_dict(),

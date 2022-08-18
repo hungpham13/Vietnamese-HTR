@@ -17,4 +17,5 @@ def plot_class_instance(dataloader, title=""):
         ax.imshow(img.squeeze(), cmap="gray")
         # print(target)
         ax.set_xlabel(Vocab().decode(target))
+
     plt.show()
