@@ -13,7 +13,6 @@ import torch
 from vietocr.loader.dataloader_v1 import DataGen
 from vietocr.loader.dataloader import OCRDataset, ClusterRandomSampler, Collator
 from torch.utils.data import DataLoader
-from einops import rearrange
 from torch.optim.lr_scheduler import CosineAnnealingLR, CyclicLR, OneCycleLR
 
 import torchmetrics
