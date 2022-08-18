@@ -143,7 +143,7 @@ class Trainer():
                 scores = self.precision(self.metrics)
                 acc_full_seq = scores['acc_full_seq']
 
-                info = 'iter: {:06d} - valid loss: {:.3f} - acc full seq: {:.4f} - acc per char: {:.4f} - CER: {:.4f} - WER: {.4f}'.format(
+                info = 'iter: {:06d} - valid loss: {:.3f} - acc full seq: {:.4f} - acc per char: {:.4f} - CER: {:.4f} - WER: {:.4f}'.format(
                     self.iter, val_loss,
                     scores["acc_full_seq"], scores["acc_per_char"],
                     scores["cer"], scores["wer"])
