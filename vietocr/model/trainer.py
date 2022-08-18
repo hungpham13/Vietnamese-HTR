@@ -146,7 +146,7 @@ class Trainer():
                 info = 'iter: {:06d} - valid loss: {:.3f} - acc full seq: {:.4f} - acc per char: {:.4f} - CER: {:.4f} - WER: {.4f}'.format(
                     self.iter, val_loss,
                     scores["acc_full_seq"], scores["acc_per_char"],
-                    scores["CER"], scores["WER"])
+                    scores["cer"], scores["wer"])
                 print(info)
                 self.logger.log(info)
 
@@ -328,7 +328,7 @@ class Trainer():
             if name not in state_dict:
                 print('{} not found'.format(name))
             elif state_dict[name].shape != param.shape:
-                print('{} missmatching shape, required {} but found {}'.format(
+                print('{} mismatching shape, required {} but found {}'.format(
                     name, param.shape, state_dict[name].shape))
                 del state_dict[name]
 
